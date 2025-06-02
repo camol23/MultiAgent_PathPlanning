@@ -27,9 +27,9 @@ Trajectory planning project based on PSO and DRL techniques.
 ## Path Planning Algorithm Examples
 
 ### Scenario 5
-<img src="Guidance_controller/Images/pso_t2_nolast_obst7_r2_6_r1_12_c40_w30_h30.gif" width=500>
+<img src="Guidance_controller/Images/pso_t2_nolast_obst7_r2_6_r1_12_c40_w30_h30.gif" width=600  class="center">
 
 ### Scenario 4
-<img src="Guidance_controller/Images/pso_p2_a2_r1_100_r2_200_nolast_obs5_betterview.gif" width=500>
+<img src="Guidance_controller/Images/pso_p2_a2_r1_100_r2_200_nolast_obs5_betterview.gif" width=700  class="center">
 
 
