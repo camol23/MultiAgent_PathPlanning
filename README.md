@@ -48,4 +48,14 @@ Trajectory planning project based on PSO and DRL techniques.
 ### Scenario 4
 <img src="Guidance_controller/Images/pso_p2_a2_r1_100_r2_200_nolast_obs5_betterview.gif" width=700  class="center">
 
+### Scenario 3
+<img src="Guidance_controller/Images/pso_onetime_a5_r10_sceneObs3_correct_2.gif" width=700  class="center">
+
+### Scenario 2
+<img src="Guidance_controller/Images/pso_onetime_a5_r8_lastcorrect.gif" width=700  class="center">
+
+### Scenario 1
+<img src="Guidance_controller/Images/pso_a5_persistance_500_noisy_nocorrect.gif" width=700  class="center">
+
+
 
