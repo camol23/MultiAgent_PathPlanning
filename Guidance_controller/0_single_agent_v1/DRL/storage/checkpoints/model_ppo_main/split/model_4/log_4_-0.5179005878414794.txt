@@ -1,0 +1,64 @@
+
+Max_reward,    ,0.9884030984321303
+
+Ave10_reward,    ,-0.5179005878414794
+
+last_reward,    ,-0.5211943274825347
+
+
+training_phase,    ,True
+model_type,    ,PPO
+num_episodes,    ,600
+max_steps,    ,600
+scheduler_steps,    ,True
+init_val,    ,300
+div_episodes,    ,2
+normilize_states_env,    ,True
+
+gamma,    ,0.99
+epsilon,    ,0.2
+epochs,    ,10
+batch_size,    ,64
+norm_returns,    ,True
+entropy_coef,    ,0.01
+clip_grad_val,    ,1
+return_type,    ,gae
+val_loss_coef,    ,1
+gae_lambda,    ,0.95
+
+model_id,    ,1
+state_dim,    ,3
+action_dim,    ,3
+hidden_dim,    ,64
+opti_type,    ,adamw
+lr_rate,    ,0.001
+critic_coef_lr,    ,0.5
+lr_critic,    ,0
+lr_scheduler_type,    ,cosine
+warmup_epochs,    ,30
+num_episodes,    ,600
+
+goal_pos,    ,(220, 480)
+goal_tolerance,    ,0.04
+max_steps,    ,600
+section_type,    ,div_segments
+wait_in_wp,    ,20
+path_points,    ,3
+
+start_pos,    ,(100, 550)
+num_agents,    ,1
+formation_type,    ,2
+
+map_dimensions,    ,(1200, 600)
+num_obs,    ,0
+type_obs,    ,random
+seed_val_obs,    ,286
+mouse_flag,    ,True
+max_rect_obs_size,    ,200
+
+training_time_minutes,    ,52.65864306290944
+time_spend_step,    ,17.364928483963013
+time_spend_train,    ,0.9644017219543457
+checkpoint_path,    ,./Guidance_controller/0_single_agent_v1/DRL/storage/checkpoints/model_ppo_v1_splitNets/model_ppo_v1_test_49
+splitnet,    ,1
+

@@ -1,0 +1,85 @@
+		IsaacGym
+
+	1) cd /home/camilo/repos/IsaacGym_repo/IsaacGymEnvs/isaacgymenvs
+	2) conda activate rlgpu
+	3) python3 ./tasks/basic_ant_test1.py
+	
+Tested:
+ 1) python3 train.py task=Cartpole rl_device=cpu sim_device=cpu
+ (I can not remmember) python3 train.py task=anymal_custom rl_device=cpu sim_device=cpu
+ 
+ 2) Test with Omni model 2022.2.1 
+python train.py task=Anymal checkpoint=/home/camilo/repos/IsaacGym_repo/IsaacGymEnvs/isaacgymenvs/runs/Anymal_from_omni/anymal.pth test=True num_envs=2 rl_device=cpu sim_device=cpu pipeline=cpu
+
+ 3) Legged_gym
+python train.py --task=anymal_c_flat --sim_device=cpu --rl_device=cpu
+
+
+NOTES:
+	1) I editeted a base file to force to run in cpu the test=true
+	/home/camilo/miniconda3/envs/rlgpu/lib/python3.7/site-packages/rl_games/algos_torch/players.py
+		
+	2) Force to map tensors to CPU from .pth Omni file 
+	/home/camilo/miniconda3/envs/rlgpu/lib/python3.7/site-packages/rl_games/algos_torch/torch_ext.py
+	
+	3) Check .ymal for Anymal terrain to update minibatch problem : assert(self.batch_size % self.minibatch_size == 0)
+	https://github.com/TIERS/multi-agent-rl-omni
+	
+
+https://want-study.tistory.com/25
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+	legged_gym Notes
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+	Commands:
+		1) Not interactive Camera 
+			(*) python train.py --task=anymal_c_flat --sim_device=cpu --rl_device=cpu --pipeline=cpu --num_envs=2
+			(*) python train.py --task=anymal_c_flat --sim_device=cpu --rl_device=cpu --pipeline=cpu --num_envs=2
+
+	1) Edited:
+	
+	version
+	/home/camilo/repos/IsaacGym_repo/isaac_legged/rsl_rl/rsl_rl/algorithms/ppo.py
+	/home/camilo/repos/IsaacGym_repo/isaac_legged/rsl_rl/rsl_rl/runners/on_policy_runner.py
+	/home/camilo/repos/IsaacGym_repo/isaac_legged/legged_gym/legged_gym/envs/anymal_c/anymal.py
+	
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+	About Envs:
+------------------------------------------------------------------------------------------------------------------------------------------------
+		1) rlgpu: has installed and working:
+			a) Gym
+			b) legged_gym
+			c) MPC-RL
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+	Alternative:
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+	1) MPC controler with ISaacGym
+	https://github.com/silvery107/rl-mpc-locomotion/blob/main/RL_Environment/gamepad_reader.py
+	
+	Commands:
+		1) python RL_MPC_Locomotion.py --robot=Aliengo --disable-gamepad
+		2) python RL_MPC_Locomotion_custom.py --robot=Aliengo --num-envs=3 --bridge=True --disable-gamepad
+		3) python RL_MPC_Locomotion_custom.py --robot=Aliengo --num-envs=1 --num-agents=2 --bridge=True --disable-gamepad
+	Notes:
+		1) The repo don't accept a new gamepad_reader.py file, such as keyboard_reader.py, then It's necessary overide the file
+		
+		2) Set Permissions to use inputs (inputs doesn't detect the events)
+		sudo chmod 666 /dev/input/event* 
+		sudo python3 your_script.py
+		ls -l /dev/input/event*
+		
+		3) It has been edited the files:
+			a) gamepad_reader.py : In order to run without a gamepad
+				(*) It is replace the gamepad for a keyboard device
+				
+		4) It is included a new file to manage the robot movements through velocities values (i.e. vx, vy, v_wz)
+			a) basic_commands.py
+
+ 

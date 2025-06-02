@@ -1,0 +1,67 @@
+------------------------
+    Commands
+------------------------
+
+1) python Guidance_controller/0_single_agent_v1/main_env_pso_warehouse.py 
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------
+    To Do
+------------------------
+1) Check PSO_v1 for random after intersection introduction (looks better) 
+
+2) Unified the vis. functions
+
+
+
+------------------------
+    Done
+------------------------
+
+1) Corrections and Validation of Collision by intersection function in PSO_v2
+
+2) Try to include a random hit when detect a intersection, in order to encourage exploration
+    and avoid converge to solutions with segments with intersections 
+
+3) collision_rect_lastCorrection Has been tested in center_box map
+    a) All the intersection works 
+    b) More tested is needed
+
+
+-----------------------------
+    Temporal Conclusions
+-----------------------------
+1) PSO_v2 tends to bunch the points in one area 
+    a) Possible solution PSO_v3
+    b) Improvement could be done with the gather penalty (not garanteed)
+
+
+------------------------
+    Considerations
+------------------------
+
+1) Last adjustment function (last action over Global Best Path)             |  
+            a) Correction for intersection                                  | Not
+            b) Create margin to the obstacle                                | Not
+            c) Smooth Path                                                  | Not
+
+
+    1.a) Correction for intersection
+            a) Could it be possible have problems when the point get parallel in y and then
+                detect intersection again, and move the point to the same x and turn the   
+                second coordinate the same as the first one (x1, y1) = (x2, y2)
+
+
+            
+
+

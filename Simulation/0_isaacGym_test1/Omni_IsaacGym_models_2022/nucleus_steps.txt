@@ -1,0 +1,10 @@
+
+	Nucleus Data Omni App
+
+1) checkpoint=omniverse://localhost/NVIDIA/Assets/Isaac/2022.2.1/Isaac/Samples/OmniIsaacGymEnvs/Checkpoints/anymal_terrain.pth
+	a) Enter through app, and go to Nucleus
+	b) User: camilo_nucleus	
+	   Pass: Uni pass
+	c) Policy taken from quadruped data (perhaps not useful at all)
+
+2) Some Omni data: cd ~/.local/share/ov/data/Kit/

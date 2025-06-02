@@ -1,0 +1,64 @@
+------------------------------------------------------------------------------------------
+    Commands
+------------------------------------------------------------------------------------------
+
+1) Run A2C V2 (Batch formed based on steps)
+    python ./Guidance_controller/0_single_agent_v1/main_env_drl_v2.py
+
+2) Run A2C standart version 
+    python ./Guidance_controller/0_single_agent_v1/main_env_a2c_standart_v1.py
+
+
+3) Test Rewards and States computation
+     python ./Guidance_controller/0_single_agent_v1/main_debug_rewards.py
+
+
+
+------------------------------------------------------------------------------------------
+    What is Added
+------------------------------------------------------------------------------------------
+    - v1_2:
+        1) Norm. Rewards
+        2) Clipped Grads
+        3) Lr. Scheduler (Cosine)
+            a) lr. Critc = 0.5*Lr_actor
+        4) n-Steps Return
+
+
+
+------------------------------------------------------------------------------------------
+    Comments
+------------------------------------------------------------------------------------------
+1) The custom A2C v2 and The standart have simuliar bad behaviour
+    a) The plots suggest the problem is related to the rewards 
+        *) Too high al the time
+        *) The loss is zero very soon
+
+
+
+------------------------------------------------------------------------------------------
+    To DOs
+------------------------------------------------------------------------------------------
+
+4) Check How increase the simulation response
+    a) update time 
+    b) Not graphical visualization
+
+3) Included the Stop condition when the goal is reached (tolerance)
+
+2) Reward function to encorage move to the same direction to the goal  
+    a) It suppoues to be enough with the closer position reward fnct?
+
+1) Change the rewards 
+    a) Discrete
+    b) Combine them between discrete for far values and continuous for close ones 
+    c) Should be Consider penalties?
+
+
+
+------------------------------
+    Done from To DOs
+------------------------------
+
+1) Include TD target with done flag (Standart Computation)
+    * Is included as TD_target_v2() 
