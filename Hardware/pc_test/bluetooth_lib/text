@@ -1,0 +1,36 @@
+I need a basic communication between a PC and three ev3 boards using Bluetooth, I need to broadcasting the data using advertisements, I want to send just strings, and I have a code for the PC and for the EV3s that I need that you check and make the adjustments to achieve the goal, please avoid the format ( f"string {DATA}" ), and from the ev3 code I got the following error
+
+error: Failed to register advertisement: org.freedesktop.DBus.Error.UnknownMethod: Method "RegisterAdvertisement" with signature "sa{sv}" on interface "org.bluez.LEAdvertisingManager1" doesn't exist
+
+
+
+running EV3 code I got the error:
+ValueError: invalid UUID specified in service_classes
+
+how can solve that, keeping the same simpicity of the code knowing the following ev3 packages inf:
+
+BlueZ version:  5.43
+Found Bluetooth adapter at  /org/bluez/hci0
+Bluetooth LE advertising not supported on this device
+Available tools: hcitool btmon  bluetoothctl
+
+can you provide me with code to connect through Bluetooth my ubunutu pc with 3 ev3dev lego mindstorms broadcasting the data with advertisments, in the most simple way, considering that I have problems with dbus, and some tries has worked just with bluetooth.ble, I just want to send strings, and the format  f"T:{temp:.1f},L:{light:.1f}" doesn't work
+
+
+(base) $ hcitool scan
+Scanning ...
+        F0:45:DA:11:92:74       EV3-Test-456
+
+
+
+python3 bluetooth_lib/pc_second_blut.py         Connection is stablised, but just recieve one message then close the communi.
+
+dpkg -l | grep bluez
+
+
+python3 bluetooth_lib/pc_second_server_blut_v2.py       Connection works just for one
+Sent to F0:45:DA:D2:C8:88 : CMD_62
+Received from F0:45:DA:D2:C8:88 : ACK_EV3_1_62
+Received from F0:45:DA:D2:C8:88 : DATA_EV3_1_51
+
+pc_multiple.py  (simple threading implmentation)

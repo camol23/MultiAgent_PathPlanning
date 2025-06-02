@@ -1,0 +1,162 @@
+-------------------------------
+  WIFI
+-------------------------------
+
+For Dongle D-Link Corp. DWA-121 rev B1
+
+1) Create a new udev rule
+sudo nano /etc/udev/rules.d/99-dwa121.rules
+2) And add the following line:
+  ACTION=="add", ATTRS{idVendor}=="2001", ATTRS{idProduct}=="331b", RUN+="/sbin/modprobe 8188eu" 
+  RUN+="/bin/sh -c 'echo 2001 331b > /sys/bus/usb/drivers/r8188eu/new_id'"
+
+3) Reboot EV3
+REF: https://github.com/ev3dev/ev3dev/wiki/USB-Wi-Fi-Dongles
+
+# To use RPYC
+  nano /lib/systemd/system/rpyc-classic.service 
+  python3 -c 'import rpyc; print(rpyc.__version__)'
+
+sudo apt-get -y install python3-pip
+sudo python3 -m pip install rpyc==5.0.0 
+ssh robot@10.16.12.25
+  *) password = maker
+echo "[Unit]
+Description=RPyC Classic Service
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/rpyc_classic.py --host '10.16.12.25'
+
+[Install]
+WantedBy=multi-user.target" > rpyc-classic.service
+
+sudo cp rpyc-classic.service /lib/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable rpyc-classic.service
+sudo systemctl start rpyc-classic.service
+*) Reboot
+
+REF: https://github.com/ev3dev/ev3dev/issues/1359
+     https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/rpyc.html
+
+
+-------------------------------
+  SSH
+-------------------------------
+ssh robot@10.16.12.26
+scp file_name.py robot@10.16.12.26:/test_python
+
+*from local
+sudo scp robot@10.122.237.25:/home/robot/test_local_numpy_based/logging_data/data_saved/run_data_5_15_9_43_agent_1 /home/camilo/Documents/experimental_test/
+
+sudo chmod 777 file_name.py
+ls -l file_name.py
+
+sudo scp robot@10.122.237.25:/home/robot/test_local_numpy_based/logging_data/data_saved/run_data_5_15_12_17_agent_1 /home/camilo/Documents/experimental_test/
+run_data_5_15_12_17_agent_0
+
+-------------------------------
+  Bluetooth 
+-------------------------------
+
+
+ dpkg -l | grep bluez
+ bluez                                       5.43-2+deb9u2                     armel        Bluetooth tools and daemons
+ii  ev3dev-bluez-config                         1.0.0                             all          ev3dev-specific configuration files for bluez
+ii  python3-bluez                               0.22-1ev3dev3                     armel        Python wrappers around BlueZ for rapid bluetooth development
+
+
+
+Starting EV3 BLE Node 1
+BlueZ version:  5.43
+Found Bluetooth adapter at  /org/bluez/hci0
+Bluetooth LE advertising not supported on this device
+Available tools: hcitool btmon  bluetoothctl
+Started scanning with available methods
+
+
+robot@ev3dev:~$ sudo btmgmt info
+[sudo] password for robot: 
+Index list with 1 item
+hci0:   Primary controller
+        addr F0:45:DA:11:92:74 version 6 manufacturer 13 class 0x020100
+        supported settings: powered connectable fast-connectable discoverable bondable link-security ssp br/edr hs debug-keys 
+        current settings: powered connectable bondable ssp br/edr 
+        name EV3-1-S1:10,8
+        short name 
+
+F0:45:DA:11:92:74 one
+F0:45:DA:D2:C8:88 two (ticket)
+
+bluetoothctl check address
+bluetoothctl devices check MAC
+blue_scond_py3.py       Send one package, then fail, not receive any
+
+
+# UPDATE THE APT
+https://www.ev3dev.org/docs/getting-started/
+https://github.com/ev3dev/docker-library/blob/master/ev3dev-stretch/layers/debian/etc/apt/sources.list
+
+sudo nano /etc/apt/sources.list
+sudo apt-get update
+# Ticket
+deb http://archive.debian.org/debian stretch main contrib non-free
+#deb-src http://archive.debian.org/debian stretch main contrib non-free
+
+deb http://archive.ev3dev.org/debian stretch main
+#deb-src http://archive.ev3dev.org/debian stretch main
+
+
+deb http://httpredir.debian.org/debian stretch main contrib non-free
+#deb-src http://httpredir.debian.org/debian stretch main contrib non-free
+
+deb http://security.debian.org/ stretch/updates main contrib non-free
+#deb-src http://security.debian.org/ stretch/updates main contrib non-free
+
+deb http://archive.ev3dev.org/debian stretch main
+#deb-src http://archive.ev3dev.org/debian stretch main
+
+# ev3dev
+deb http://httpredir.debian.org/debian stretch main contrib non-free
+#deb-src http://httpredir.debian.org/debian stretch main contrib non-free
+
+deb http://security.debian.org/ stretch/updates main contrib non-free
+#deb-src http://security.debian.org/ stretch/updates main contrib non-free
+
+deb http://archive.ev3dev.org/debian stretch main
+#deb-src http://archive.ev3dev.org/debian stretch main
+
+new 
+deb http://archive.debian.org/debian stretch main contrib non-free
+#deb-src http://archive.debian.org/debian stretch main contrib non-free
+
+deb http://archive.ev3dev.org/debian stretch main
+#deb-src http://archive.ev3dev.org/debian stretch main
+
+
+
+dpkg -l | grep bluez 
+sudo apt install bluez bluez-tools bluez-hcidump libbluetooth-dev
+
+                Probably change something
+                The new packages bluez-hcidump libbluetooth-dev
+
+
+
+robot@ev3dev:~$ sudo apt install python3-numpy
+[sudo] password for robot: 
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following additional packages will be installed:
+  libblas-common libblas3 libgfortran3 liblapack3
+Suggested packages:
+  gcc gfortran python-numpy-doc python3-dev python3-nose python3-numpy-dbg
+The following NEW packages will be installed:
+  libblas-common libblas3 libgfortran3 liblapack3 python3-numpy
+0 upgraded, 5 newly installed, 0 to remove and 0 not upgraded.
+Need to get 4181 kB of archives.
+After this operation, 18.2 MB of additional disk space will be used.
+Do you want to continue? [Y/n] 
