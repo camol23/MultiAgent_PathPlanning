@@ -11,26 +11,26 @@ from utils_fnc import op_funct
 
 
 # Input Coor.
-xr = 10
-yr = 10
+xr = 0.10
+yr = 0.10
 theta_r = math.radians(15)
 
-xg = 100 
-yg = 100
+xg = 1.00 
+yg = 1.00
 
-arbritary = [30, 20]
+arbritary = [0.30, 0.20]
 
-detection_distance = 25
+detection_distance = 0.25
 
 # Frame are the Transformed Coor.
 # Coor. for the DRL
 # Frame Data 
-frame_scale = 2
+frame_scale = 0.02
 frame_size = 20                         # complete size is frame_size*2
-r_circ = (frame_size*frame_scale) - 2   # real area
+r_circ = (frame_size*frame_scale) - 0.02   # real area
 
 obst_r_frame = 4
-obst_r = obst_r_frame*frame_scale 
+obst_r = (obst_r_frame*frame_scale)
 
 # DRL map
 x0 = None               # Center in real Coordinates
@@ -113,6 +113,8 @@ axes.scatter(x0, y0, c='red', alpha=1, linewidths=1)
 w_real_frame = abs(corners[0][0] - corners[1][0])
 h_real_frame = abs(corners[0][1] - corners[2][1])
 axes.add_patch(Rectangle((corners[2][0], corners[2][1]), w_real_frame, h_real_frame, fill=False, ec='black'))
+print('w_real_frame', w_real_frame)
+print('h_real_frame', h_real_frame)
 
 axes.add_patch(Circle((x0, y0), radius=r_circ, alpha=0.3))
 axes.add_patch(Circle((x0, y0), radius=obst_r, alpha=0.3, fill=False, ec='black', ls='--'))

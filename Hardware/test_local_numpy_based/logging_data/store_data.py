@@ -143,3 +143,35 @@ def save_pickle(name, dict_data, path="./"):
     print("Pickle File Saved as ", file_name)
 
     return file_name
+
+def save_time_data_pickle(name, time_dict, path="./"):
+    '''
+        name = scen_name_mothod
+    '''
+
+    # Create File
+    file_name = name
+    
+    file_name = path + file_name 
+    data_file = open(file_name, 'ab')
+
+    # Store
+    pickle.dump(time_dict, data_file)                    
+    data_file.close()
+
+    print("Pickle File Saved as ", file_name)
+
+    return file_name
+
+
+def load_time_data_pickle(file_name):
+    '''
+        Return DIctionary with each Element
+    '''
+
+    data_file = open(file_name, 'rb')    
+    data = pickle.load(data_file)
+    
+    data_file.close()
+
+    return data

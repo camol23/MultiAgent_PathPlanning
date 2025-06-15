@@ -18,9 +18,17 @@ import matplotlib.animation as animation
     #   (1) run_data_6_8_17_16_agent_0
     #   (2) run_data_6_8_17_36_agent_1
 
+    # DRL vid #2
+    # run_data_6_15_19_1_agent_1
+    # run_data_6_15_19_1_agent_0
+
+    # DRL vid #1
+    # run_data_6_15_18_56_agent_1
+    # run_data_6_15_18_56_agent_0
+
 PATH = '/home/camilo/Documents/experimental_test/'
-file_name = PATH + 'run_data_6_8_17_36_agent_0' # 'run_data_5_15_8_45_agent_0'
-file_name_a2 = PATH + 'run_data_6_8_17_36_agent_1' # 'run_data_5_15_8_45_agent_1'
+file_name = PATH + 'run_data_6_15_18_56_agent_1' # 'run_data_5_15_8_45_agent_0'
+file_name_a2 = PATH + 'run_data_6_15_19_1_agent_1' # 'run_data_5_15_8_45_agent_1'
 
 
 
@@ -32,7 +40,10 @@ load_scene_params = {
     # 'scene_name' : 'scene_0_a5'
     # 'scene_name' : 'scene_0_a2'
 
-    'scene_name' : 'scene_experiment_test0_a2'
+    # 'scene_name' : 'scene_experiment_test0_a2'
+    'scene_name' : 'scene_experiment_test01_a2_s20_2'
+
+    #'scene_name' : 'scene_experiment_test01_a2_s20'
     # 'scene_name' : 'scene_0_a2_exp_line'
 
     # 'scene_name' : 'scene_obs_0_a5'

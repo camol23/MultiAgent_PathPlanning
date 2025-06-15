@@ -27,17 +27,17 @@ from logging_data import store_data
 
 
 #------ Input to choose the Map
-# print("Type => 1: Map_obst_test1 or 2: Line ")
-# map_type_input = int(input())
-# if map_type_input :
-#     map_type = 'scene_experiment_test0_a2'
-#     PSO_resolution = 5
-# else:
-#     map_type = 'scene_0_a2_exp_line'
-#     PSO_resolution = 2
+print("Type => 1: Map_obst_test1 or 2: Line ")
+map_type_input = int(input())
+if map_type_input :
+    map_type = 'scene_experiment_test0_a2'
+    PSO_resolution = 5
+else:
+    map_type = 'scene_0_a2_exp_line'
+    PSO_resolution = 2
 
-map_type = 'scene_experiment_test0_a2'
-PSO_resolution = 5
+# map_type = 'scene_experiment_test0_a2'
+# PSO_resolution = 5
 
 
 # 'scene_name' : 'scene_experiment_test0_a2'

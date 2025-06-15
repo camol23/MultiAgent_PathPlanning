@@ -104,3 +104,31 @@ def wrapped_angle_360(angle):
     angle_out = angle - correction
 
     return angle_out
+
+def wrapped_angle_360_deg(angle):
+    # Theta saturation (0 to 360)
+    
+    times = angle/360
+    cor = math.floor(times)
+    correction = cor*360
+    angle_out = angle - correction
+
+    return angle_out
+
+
+def wrapped_angle_360_deg_neg(angle):
+
+    if angle < 0:
+        angle = -angle
+        sign = -1
+    else:
+        sign = 1
+
+    times = angle/360  #(2*math.pi)
+    cor = math.floor(times)
+    correction = cor*360  #*2*math.pi
+    angle_out = angle - correction
+
+    angle_out = sign*angle_out
+
+    return angle_out

@@ -14,8 +14,8 @@ from .bluetooth_brick import ThreadingRFCOMMServer, ThreadingRFCOMMClient
 # BDADDR_ANY = "00:00:00:00:00:00"
 # BDADDR_ANY = "40:23:43:76:A9:D2" # PC
 
-BDADDR_ANY = "F0:45:DA:11:92:74"   # One
-# BDADDR_ANY = "F0:45:DA:D2:C8:88"   # two (ticket)
+# BDADDR_ANY = "F0:45:DA:11:92:74"   # One
+BDADDR_ANY = "F0:45:DA:D2:C8:88"   # two (ticket)
 
 
 

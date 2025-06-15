@@ -204,6 +204,17 @@ def load_scene(load_scene_params):
 
         load_map_params = { 'map_name' : 'map_experiment_test01_a2_s20' }
         obst_list, obst_list_unkowns, map_size = load_maps(load_map_params)
+    
+    elif scene_name == 'scene_experiment_test01_a2_s20_2' :
+        # Straight line
+        init_agent = [(0, 0), (0, 60)]
+
+        target_routes = [
+                 [(175, 100)],                 # Route 1                 
+                 [(150, 150)] ]               # Route 2
+
+        load_map_params = { 'map_name' : 'map_experiment_test01_a2_s20_2' }
+        obst_list, obst_list_unkowns, map_size = load_maps(load_map_params)
 
     elif scene_name == 'scene_experiment_test01_a2_s40' :
         # Straight line
@@ -361,6 +372,13 @@ def load_maps(load_map_params):
         obst_list.append((100, 100, 36, 20))              # MasterChef
         obst_list.append((41, 20, 42, 31))            # Lego
         obst_list_unkowns = [(45, 93, 20, 20)]         # YouSee
+    
+    elif map_name == 'map_experiment_test01_a2_s20_2' :
+        map_size = (200, 180)
+        
+        obst_list.append((100, 100, 36, 20))              # MasterChef
+        obst_list.append((41, 20, 42, 31))            # Lego
+        obst_list_unkowns = [(45, 71, 18, 26)]         # YouSee
     
     elif map_name == 'map_experiment_test01_a2_s40' :
         map_size = (200, 180)
