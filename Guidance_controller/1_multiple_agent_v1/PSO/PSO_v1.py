@@ -110,7 +110,7 @@ class PSO:
         if seed != None :
             self.seed = seed
         
-        # np.random.seed(seed=10)
+        np.random.seed(seed=10)
 
         self.already_point_creation_flag = 0
 

@@ -14,10 +14,13 @@ import matplotlib.colors as mcolors
 import matplotlib.animation as animation
 
 
+# Succesfull exp. test:
+    #   (1) run_data_6_8_17_16_agent_0
+    #   (2) run_data_6_8_17_36_agent_1
 
 PATH = '/home/camilo/Documents/experimental_test/'
-file_name = PATH + 'run_data_5_15_12_17_agent_0' # 'run_data_5_15_8_45_agent_0'
-file_name_a2 = PATH + 'run_data_5_15_12_17_agent_1' # 'run_data_5_15_8_45_agent_1'
+file_name = PATH + 'run_data_6_8_17_36_agent_0' # 'run_data_5_15_8_45_agent_0'
+file_name_a2 = PATH + 'run_data_6_8_17_36_agent_1' # 'run_data_5_15_8_45_agent_1'
 
 
 

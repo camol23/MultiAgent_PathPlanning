@@ -20,6 +20,7 @@ class module_observations:
         self.W = 0
 
         self.guideline_dist = 0
+        self.obs_dist = 0
 
         # Variables
         self.WP0 = (0, 0)           # Should be set based in the current waypoint
@@ -35,7 +36,7 @@ class module_observations:
         self.scale_obs = module_obs_params['scale_obs']
 
 
-    def compute(self, state, goal, vels):
+    def compute(self, state, goal, vels, obst_flag=False, obst_coor=[0,0], no_reshape_flag=False):
         '''
             Update the Observations with a new reading
 
@@ -51,27 +52,54 @@ class module_observations:
         self.Th_e = self.compute_heading_error(state, goal, self.Th)
         self.Xe, self.Ye = self.compute_pos_error(state, goal)
         
-        # It's not normalize (COuld cause problems)
+        # It's not normalize (Could cause problems)
         self.guideline_dist = self.compute_guideline_dist(state, goal)
+
+        if obst_flag :
+            self.obs_dist = self.compute_obs_dist(state, obst_coor)
 
         # Velocities
         self.Vx = vels[0]
         self.Vy = vels[1]
         self.W = vels[2]
 
-        return self.wrap_output()
+        return self.wrap_output(obst_flag, no_reshape_flag)
 
 
-    def wrap_output(self):
+    def wrap_output(self, obst_flag=False, no_reshape_flag=False):
 
-        obs = np.array([self.Xe,
-                        self.Ye,
-                        self.Th_e,
-                        self.Th,
-                        self.Vx,
-                        self.Vy,
-                        self.W,
-                        self.guideline_dist]).reshape((1, 8))
+
+        if no_reshape_flag == 0 :
+            if obst_flag:
+                obs = np.array([self.Xe,
+                            self.Ye,
+                            self.Th_e,
+                            self.Th,
+                            self.Vx,
+                            self.Vy,
+                            self.W,
+                            self.guideline_dist,
+                            self.obs_dist]).reshape((1, 9))
+            else:    
+                obs = np.array([self.Xe,
+                                self.Ye,
+                                self.Th_e,
+                                self.Th,
+                                self.Vx,
+                                self.Vy,
+                                self.W,
+                                self.guideline_dist]).reshape((1, 8))
+        
+        else:
+            obs = np.array([self.Xe,
+                            self.Ye,
+                            self.Th_e,
+                            self.Th,
+                            self.Vx,
+                            self.Vy,
+                            self.W,
+                            self.guideline_dist,
+                            self.obs_dist])
         
         return obs
         
@@ -179,11 +207,18 @@ class module_observations:
         obs_dist_scaled = dist/self.scale_obs
 
         # Avoid send the sensor val. directly
-        if obs_dist_scaled > 1.25 : 
-            # obs_dist = 4 + rand()
-            obs_dist = 4
+        if obs_dist_scaled > 1.25 :
+            a = np.random.rand(1) 
+            obs_dist = 4 + a.item()
+            # obs_dist = 4
         else:
             obs_dist = obs_dist_scaled
 
         return obs_dist
-        
+    
+    def locate_obst(self, state, sensor_dist, obst_center_dist=0):
+
+        x_obst_center = state[0] + (sensor_dist+obst_center_dist)*math.cos(state[2])
+        y_obst_center = state[1] + (sensor_dist+obst_center_dist)*math.sin(state[2])
+
+        return [x_obst_center, y_obst_center]

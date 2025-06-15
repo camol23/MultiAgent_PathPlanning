@@ -25,7 +25,7 @@ class policy_manager:
         self.observations_module = observations
 
     
-    def step(self, state, vels):
+    def step(self, state, vels, obst_flag=False, sensor_dist=0, obst_center_dist=0):
         '''
             state = [robot.x, robot.y, robot.theta]
             vels = [robot.Vx, robot.Vy, robot.w]
@@ -40,12 +40,50 @@ class policy_manager:
         goal_coor = self.Tr[self.idx+1]
 
         # Compute Observations
-        observations = self.observations_module.compute(state, goal_coor, vels)
+        if obst_flag :
+            obst_coor = self.observations_module.locate_obst(state, sensor_dist, obst_center_dist)
+        else:
+            obst_coor = [0, 0]
+
+        observations = self.observations_module.compute(state, goal_coor, vels, obst_flag, obst_coor)
         obs_input = tf.convert_to_tensor(observations)
         action = self.policy.predict(obs_input, verbose=0)
 
         vel_right = action[0][0]
         vel_left = action[0][1]
+
+        return vel_right, vel_left
+    
+
+    def step_np(self, state, vels, obst_flag=False, sensor_dist=0, obst_center_dist=0, no_reshape_flag=True):
+        '''
+            state = [robot.x, robot.y, robot.theta]
+            vels = [robot.Vx, robot.Vy, robot.w]
+        '''
+        
+        # Goal Coordinate
+        # self.update_idx(state)
+        # goal_coor = self.Tr[self.idx+1]
+
+        goal_coor = [self.Tr[self.idx+1][0],self.Tr[self.idx+1][1]]   
+        self.update_idx_reach_goal(state, goal_coor)
+        goal_coor = self.Tr[self.idx+1]
+
+        # Compute Observations
+        if obst_flag :
+            obst_coor = self.observations_module.locate_obst(state, sensor_dist, obst_center_dist)
+        else:
+            obst_coor = [0, 0]
+
+        obs_input = self.observations_module.compute(state, goal_coor, vels, obst_flag, obst_coor, no_reshape_flag)        
+        obs_input = obs_input.astype(np.float32)
+        # print(obs_input.dtype)
+        action = self.policy.compute(obs_input)
+        # print(obs_input.dtype)
+        action = action.astype(np.float32)
+
+        vel_right = action[0]
+        vel_left = action[1]
 
         return vel_right, vel_left
 

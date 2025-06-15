@@ -1,3 +1,4 @@
+import tensorflow as tf
 import numpy as np
 import math
 import random
@@ -7,6 +8,10 @@ from PSO import pso_iterator
 from PSO import PSO_decision
 from PSO import PSO_auxiliar
 from Aux_libs import ploting
+
+from DRL2 import observations_module, manage_policy, coor_sys_transform, numpy_layers
+import actor_tg4_tf
+import actor_all_18_tf
 
 from utils_fnc import op_funct, interpreter, opt_funct_numpy
 from Env import env_small
@@ -23,6 +28,7 @@ import matplotlib.animation as animation
 # ---------------------------------------------------------------------------------------------------
 
 save_time = False
+obst_collision_assistance_flag = False
 remap_type = "Obstacle_detection" 
 # remap_type = "new_data"                      # Update base on new Obstacles discovered
 time_map_update = 1000                       # Iterationsto apply the remapping
@@ -31,10 +37,11 @@ total_iter = 15000                           # For loop Iteretions
 Ts = 0.4                                     # Sample time
 
 max_vel = 1
+max_vel_drl = 0.5
 tol_goal = 1                                 # Stop signal when reach the goal [cm]
 
 # Add sensor noise
-flag_noise_sensor = True
+flag_noise_sensor = False
 mu = 0
 sigma = 0.5 # 5mm 
 # sensor_noise = random.gauss(mu, sigma)
@@ -63,7 +70,12 @@ load_scene_params = {
     # 'scene_name' : 'scene_experiment_test0_a2'
 
     # 'scene_name' : 'scene_experiment_test1_a2'
-    'scene_name' : 'scene_experiment_test01_a2'
+    # 'scene_name' : 'scene_experiment_test01_a2'
+
+    # drl frame test
+    # 'scene_name' : 'scene_experiment_test01_a2_s8'
+    'scene_name' :'scene_experiment_test01_a2_s20'
+    # 'scene_name' :'scene_experiment_test01_a2_s40'
     
     # 'scene_name' : 'scene_obs_0_a5'        
     # 'scene_name' : 'scene_obs_2_a5'       #
@@ -78,6 +90,24 @@ load_scene_params = {
 load_complementary_scene_params = {
     'scene_name' : 'scene_obs_0_a5_complement_1'
 }
+
+# DRL
+# Observations
+module_obs_params = {
+    'scale_pos' : 10,
+    'scale_obs' : 4
+}
+
+frame_transform_params = {
+    'frame_scale' : 2,
+    'frame_size' : 20,
+    'circ_margin' : 2,
+    'obst_r_frame' : 4,
+    'tol_sugbgoal' : 10,
+
+    'detection_distance' : 36  # It's update when it's intantiate
+}
+
 
 #
 # PSO
@@ -151,7 +181,7 @@ obs_algorithm_params = {
 
 detect_obs_params = {
     'angle_range' : math.radians(30), #45
-    'ray_length' : 30 #25
+    'ray_length' : 30 #30 #36 #25
 }
 
 
@@ -316,6 +346,56 @@ for track in data_lists :
     policy_list.append( policy )
 
 
+# For DRL model in numpy
+params_name = './logging_data/actor_all_18_np_params'
+data_dict = store_data.load_time_data_pickle(params_name)
+w_params = data_dict['w_params']
+b_params = data_dict['b_params']
+
+
+policy_list_drl = []
+for i, track in enumerate(data_lists) :
+    
+    # DRL Agent
+    # actor_tf = actor_all_18_tf.load_model()
+    actor = numpy_layers.model_all_18()
+    actor.initialization(w_params, b_params)
+    
+    # Obs. Module
+    obs_module = observations_module.module_observations()
+    obs_module.initialize(module_obs_params)
+    obs_module.WP0 = [0, 0]
+
+    trajectory = []
+    policy_drl = manage_policy.policy_manager()
+    policy_drl.initialization(i, trajectory, actor, obs_module)
+
+    policy_list_drl.append( policy_drl )
+
+
+policy_checker = []
+for i, track in enumerate(data_lists) :
+    
+    # DRL Agent
+    actor_tf = actor_all_18_tf.load_model()    
+    
+    # Obs. Module
+    obs_module = observations_module.module_observations()
+    obs_module.initialize(module_obs_params)
+    obs_module.WP0 = [0, 0]
+
+    trajectory = []
+    policy_drl = manage_policy.policy_manager()
+    policy_drl.initialization(i, trajectory, actor_tf, obs_module)
+
+    policy_checker.append( policy_drl )
+
+# reframe object
+frame_transform_params['detection_distance'] = detect_obs_params['ray_length']
+re_frame = coor_sys_transform.frame_transform()
+re_frame.initialization(frame_transform_params)
+
+
 # -------------------------------------- Map Update -------------------------------------------------
 route_update = PSO_auxiliar.pso_map_update()
 route_update.safe_margin_obs = safe_margin_obs_pso
@@ -383,7 +463,8 @@ for i in range(0, total_iter):
 
         # Applying control signal & Read Response
         robot.step(vel_right, vel_left)                                                     # model step
-        state = [robot.x, robot.y, robot.theta]    
+        state = [robot.x, robot.y, robot.theta]   
+        vels = [robot.Vx, robot.Vy, robot.w] 
 
         # Policy Agent Idx
         policy_i = policy_list[agent_idx]
@@ -411,128 +492,161 @@ for i in range(0, total_iter):
             sensor_dist = 50
 
         # Collision Avoidance ALgorithm
-        if obs_algorithm_avoidance_flag :
-            start_time = time.time()
 
-            obs_algorithm_i = obs_algorithm_avoidance[agent_idx]
-            obs_algorithm_i.check_sensor(sensor_dist, policy_i.idx, state, policy_i.Tr)
-            if obs_algorithm_i.controller_update :
-                policy_i.Tr = obs_algorithm_i.Tr_obs            
-                policy_i.idx = obs_algorithm_i.idx_output
-            
-            avoidace_time[i, agent_idx, 0] = time.time() - start_time
-        else:
-        #------------------------------------------------------------- Re-Map  Modes -------------------------------------------------------------------------------------------------- 
-            start_time_remapping = time.time()
+        if obst_collision_assistance_flag :
+            if obs_algorithm_avoidance_flag :
+                start_time = time.time()
 
-            if remap_type == "Obstacle_detection" :
-                remap_flag = obs_detection_flag
-            elif remap_type == "new_data" :
-                if time_map_update == i :
-                    remap_flag = True
-                else:
-                    remap_flag = False
+                obs_algorithm_i = obs_algorithm_avoidance[agent_idx]
+                obs_algorithm_i.check_sensor(sensor_dist, policy_i.idx, state, policy_i.Tr)
+                if obs_algorithm_i.controller_update :
+                    policy_i.Tr = obs_algorithm_i.Tr_obs            
+                    policy_i.idx = obs_algorithm_i.idx_output
+                
+                avoidace_time[i, agent_idx, 0] = time.time() - start_time
+            else:
+            #------------------------------------------------------------- Re-Map  Modes -------------------------------------------------------------------------------------------------- 
+                start_time_remapping = time.time()
 
-            if remap_persistance_flag == 0 : 
-                # One Time detection
-                if remap_flag and (re_map_activation[agent_idx]==0):
-                    if remap_type == "Obstacle_detection" :
-                        # new_obst_list = obst_list + obst_list_unkowns
-                        already_discovered = False
-                        for id_discoverd in obst_ids_discovered:
-                            if id_discoverd == obst_id :
-                                already_discovered = True
-                                break
+                if remap_type == "Obstacle_detection" :
+                    remap_flag = obs_detection_flag
+                elif remap_type == "new_data" :
+                    if time_map_update == i :
+                        remap_flag = True
+                    else:
+                        remap_flag = False
 
-                        if (obst_id != -1) and (already_discovered==0) :
-                            obst_list_discover_unkowns.append(obst_list_unkowns[obst_id])
-                            new_obst_list = obst_list + obst_list_discover_unkowns
-                        else:
-                            new_obst_list = obst_list + obst_list_discover_unkowns
-                    elif remap_type == "new_data" :
-                        new_obst_list = obst_list + obst_list_unkowns + obst_list_added + obst_list_unkowns_added
+                if remap_persistance_flag == 0 : 
+                    # One Time detection
+                    if remap_flag and (re_map_activation[agent_idx]==0):
+                        if remap_type == "Obstacle_detection" :
+                            # new_obst_list = obst_list + obst_list_unkowns
+                            already_discovered = False
+                            for id_discoverd in obst_ids_discovered:
+                                if id_discoverd == obst_id :
+                                    already_discovered = True
+                                    break
 
-                    current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
-                    route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
-                    route_update.compute_new_route()
-                    policy_i.Tr = route_update.new_track
-                    policy_i.idx = 0
-
-                    re_map_activation[agent_idx] = 1
-            
-            elif remap_persistance_flag == 1 : 
-                # All share information about Obst. found during running
-                if remap_flag:
-                                    
-                    if persistance_pso_aux.activation_flag :
-                        # Include Unkown Obst. guess location
-                        # print("COUTER ", persistance_pso_aux.counter)
-                        persistance_pso_aux.add_obst_by_detection(state, sensor_dist)                    
-                        # Update Map
-                        obst_list_unkowns_found = persistance_pso_aux.unknown_obst_list
-                        new_obst_list = obst_list + obst_list_unkowns_found + obst_list_added + obst_list_unkowns_added
-
-                        # Re-compute Trajectory (PSO)
-                        current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
-                        route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
-                        route_update.compute_new_route()
-                        policy_i.Tr = route_update.new_track
-                        policy_i.idx = 0
-
-                        new_obst_list = []
-                    
-                    persistance_pso_aux.detection_counter()
-
-            elif remap_persistance_flag == 2 :
-                # No information is shared            
-                if remap_flag:
-                    
-                    persistance_pso_aux_i = persistance_pso_aux_list[agent_idx]
-                    if persistance_pso_aux_i.activation_flag :
-                        # Include Unkown Obst. guess location
-                        persistance_pso_aux_i.add_obst_by_detection(state, sensor_dist)                    
-                        # Update Map
-                        obst_list_unkowns_found = persistance_pso_aux_i.unknown_obst_list
-                        new_obst_list = obst_list + obst_list_unkowns_found + obst_list_added + obst_list_unkowns_added
-
-                        # Re-compute Trajectory (PSO)
-                        current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
-                        route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
-                        route_update.compute_new_route()
-                        policy_i.Tr = route_update.new_track
-                        policy_i.idx = 0
-
-                        new_obst_list = []
-                    
-                    persistance_pso_aux_i.detection_counter()
-                    persistance_pso_aux_list[agent_idx] = persistance_pso_aux_i
-
-            else:            
-                # Re-Map based on Obstacle ID (semi-Unnkown)
-                if cooldown_remap_counter[agent_idx] >= cooldown_remap :
-                    cooldown_remap_counter[agent_idx] = 0
-                    if remap_flag :
-                        # new_obst_list = obst_list + obst_list_unkowns
-                        if obst_id != -1 :
+                            if (obst_id != -1) and (already_discovered==0) :
                                 obst_list_discover_unkowns.append(obst_list_unkowns[obst_id])
                                 new_obst_list = obst_list + obst_list_discover_unkowns
-                        else:
-                            new_obst_list = obst_list + obst_list_discover_unkowns
-                        
+                            else:
+                                new_obst_list = obst_list + obst_list_discover_unkowns
+                        elif remap_type == "new_data" :
+                            new_obst_list = obst_list + obst_list_unkowns + obst_list_added + obst_list_unkowns_added
 
                         current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
                         route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
                         route_update.compute_new_route()
                         policy_i.Tr = route_update.new_track
                         policy_i.idx = 0
-            
-            remapping_time[i, agent_idx, 0] = time.time() - start_time_remapping               
+
+                        re_map_activation[agent_idx] = 1
+                
+                elif remap_persistance_flag == 1 : 
+                    # All share information about Obst. found during running
+                    if remap_flag:
+                                        
+                        if persistance_pso_aux.activation_flag :
+                            # Include Unkown Obst. guess location
+                            # print("COUTER ", persistance_pso_aux.counter)
+                            persistance_pso_aux.add_obst_by_detection(state, sensor_dist)                    
+                            # Update Map
+                            obst_list_unkowns_found = persistance_pso_aux.unknown_obst_list
+                            new_obst_list = obst_list + obst_list_unkowns_found + obst_list_added + obst_list_unkowns_added
+
+                            # Re-compute Trajectory (PSO)
+                            current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
+                            route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
+                            route_update.compute_new_route()
+                            policy_i.Tr = route_update.new_track
+                            policy_i.idx = 0
+
+                            new_obst_list = []
+                        
+                        persistance_pso_aux.detection_counter()
+
+                elif remap_persistance_flag == 2 :
+                    # No information is shared            
+                    if remap_flag:
+                        
+                        persistance_pso_aux_i = persistance_pso_aux_list[agent_idx]
+                        if persistance_pso_aux_i.activation_flag :
+                            # Include Unkown Obst. guess location
+                            persistance_pso_aux_i.add_obst_by_detection(state, sensor_dist)                    
+                            # Update Map
+                            obst_list_unkowns_found = persistance_pso_aux_i.unknown_obst_list
+                            new_obst_list = obst_list + obst_list_unkowns_found + obst_list_added + obst_list_unkowns_added
+
+                            # Re-compute Trajectory (PSO)
+                            current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
+                            route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
+                            route_update.compute_new_route()
+                            policy_i.Tr = route_update.new_track
+                            policy_i.idx = 0
+
+                            new_obst_list = []
+                        
+                        persistance_pso_aux_i.detection_counter()
+                        persistance_pso_aux_list[agent_idx] = persistance_pso_aux_i
+
+                else:            
+                    # Re-Map based on Obstacle ID (semi-Unnkown)
+                    if cooldown_remap_counter[agent_idx] >= cooldown_remap :
+                        cooldown_remap_counter[agent_idx] = 0
+                        if remap_flag :
+                            # new_obst_list = obst_list + obst_list_unkowns
+                            if obst_id != -1 :
+                                    obst_list_discover_unkowns.append(obst_list_unkowns[obst_id])
+                                    new_obst_list = obst_list + obst_list_discover_unkowns
+                            else:
+                                new_obst_list = obst_list + obst_list_discover_unkowns
+                            
+
+                            current_target = target_routes[pso_routes.output_routes_ids[agent_idx]]            
+                            route_update.initialization(map_size, state, current_target, pso_params_map_update, new_obst_list, policy_i.idx, policy_i.Tr)
+                            route_update.compute_new_route()
+                            policy_i.Tr = route_update.new_track
+                            policy_i.idx = 0
+                
+                remapping_time[i, agent_idx, 0] = time.time() - start_time_remapping               
+
 
         #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # COMPUTE: Policy       
-        start_time = time.time()
-        vr, vl = policy_i.step(state, vis=False)
+        # goal_coor = policy_i.Tr[policy_i.idx+1]
+        goal_coor = policy_i.Tr[-2]
+        if agent_idx == 1:                    # re_frame should be an individual object for each agent
+            re_frame.check_activation(state, obs_detection_flag, goal_coor)
+
+        start_time = time.time()            
+
+        if  re_frame.its_on and (agent_idx == 1) :                  
+            state_frame, sensor_dist_frame = re_frame.coor_transformation(state, sensor_dist)
+            policy_list_drl[agent_idx].idx = 0
+            policy_list_drl[agent_idx].Tr = [[state_frame[0], state_frame[1]], [re_frame.xg_sub_frame, re_frame.yg_sub_frame]]
+            policy_list_drl[agent_idx].observations_module.WP0 = [state_frame[0], state_frame[1]]
+            vr, vl = policy_list_drl[agent_idx].step_np(state_frame, vels, obst_flag=True, sensor_dist=sensor_dist_frame, obst_center_dist=module_obs_params['scale_obs'])            
+
+            # Checker
+            # policy_checker[agent_idx].idx = 0
+            # policy_checker[agent_idx].Tr = [[state_frame[0], state_frame[1]], [re_frame.xg_sub_frame, re_frame.yg_sub_frame]]
+            # policy_checker[agent_idx].observations_module.WP0 = [state_frame[0], state_frame[1]]
+            # vr_check, vl_check = policy_checker[agent_idx].step(state_frame, vels, obst_flag=True, sensor_dist=sensor_dist_frame, obst_center_dist=module_obs_params['scale_obs'])
+
+            # if i < 2000 : 
+            #     if vr_check != vr :
+            #         print("Diff Vr = ", vr_check, vr)
+            #     if vr_check != vr :
+            #         print("Diff Vl = ", vl_check, vl)
+
+            vr = max_vel_drl*vr  
+            vl = max_vel_drl*vl 
+            # vr = max_vel_drl*vr_check  
+            # vl = max_vel_drl*vl_check            
+        else:
+            vr, vl = policy_i.step(state, vis=False)
 
         policy_time[i, agent_idx, 0] = time.time() - start_time
 
@@ -588,6 +702,9 @@ for i in range(0, total_iter):
         break
     
 
+
+print("Vel mean = ", np.mean(vel_storage[:last_iteration_i, 0, :]))
+print("Vel max = ", np.max(vel_storage[:last_iteration_i, 0, :]))
 
 # Delete non used rows
 state_storage = state_storage[:last_iteration_i,:,:]
@@ -647,6 +764,7 @@ if save_time :
 
 # Plotting Trajectories
 ploting.plot_scene(pso_routes.output_routes_ids, data_lists, obst_original, target_routes, cm_flag=True, states=state_storage, obs_unknowns=obst_list_unkowns_converted)
+ploting.plot_scene_drl_frame(pso_routes.output_routes_ids, data_lists, obst_original, target_routes, cm_flag=True, states=state_storage, obs_unknowns=obst_list_unkowns_converted, frame_objt=re_frame)
 
 
 scene_axes, state_lines, figure, axes = ploting.animate_scene(pso_routes.output_routes_ids, data_lists, obst_original, target_routes, cm_flag=True, states=state_storage, obs_unknowns=obst_list_unkowns_converted)

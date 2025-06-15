@@ -2,7 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-from matplotlib.patches import Rectangle
+from matplotlib.patches import Rectangle, Circle
 from matplotlib.patches import RegularPolygon
 import matplotlib.animation as animation
 
@@ -401,7 +401,7 @@ def plot_jointed_data(data_jointed, target_routes, obst_list, obs_unknowns, cm_f
             state_i  = state_storage_list[i]
             state_i_x = [x[0] for x in state_i]
             state_i_y = [x[1] for x in state_i]
-            axes.plot(state_i_x, state_i_y, color=color_agent[0])
+            axes.plot(state_i_x, state_i_y, color=colors_agent[0])
 
     # Draw the Stop-Goals
     color_tri = mcolors.CSS4_COLORS['lightcoral']
@@ -520,3 +520,188 @@ def animate_scene_jointed_data(data_jointed, target_routes, obst_list, obs_unkno
     # axes.legend()
 
     return scene_axes, state_lines, fig, axes
+
+
+
+def plot_scene_drl_frame(route_agent_id, data_lists=[], obst_list=[], target_routes=[[]], cm_flag=False, states=[], obs_unknowns= [], smaller=False, frame_objt=None):
+    '''
+        cm_flag: False when map is maller than 20x20 
+    '''
+    if cm_flag :
+        tri_size = 3
+        delta_tri = 2      
+        delta_name = (5, 2)
+    else:
+        tri_size = 0.3
+        delta_tri = 0.2                # up
+        delta_name = (0.5, 0.2)
+        # tri_size = 7
+        # delta_tri = 6
+        # delta_name = (20, 10)
+
+    if smaller :
+        tri_size = 0.02
+        delta_tri = 0.02                # up
+        delta_name = (0.05, 0.02)        
+
+
+    
+    # Create figure and subplots
+    fig, axes = plt.subplots(1, 1, figsize=(10, 6))
+
+    for i, route in enumerate(data_lists) :
+        axes.plot(route[0], route[1], color= mcolors.CSS4_COLORS[colors_list[i]], label="Route "+str(route_agent_id[i]))
+        axes.scatter(route[0], route[1], color= mcolors.CSS4_COLORS[colors_list[i]], alpha=0.5, linewidths=0.5)
+
+        # Text Names
+        axes.text(route[0, 0]-delta_name[0], route[1, 0]-delta_name[1], "Init", fontsize=8, horizontalalignment='left',
+        # axes.text(route[0][0]-delta_name[0], route[1][0]-delta_name[1], "Init", fontsize=8, horizontalalignment='left',
+                    verticalalignment='center', color=mcolors.CSS4_COLORS['grey'])
+        
+        if len(states) > 0 :
+            # color=color_agent[0], 
+            axes.plot(states[:, i, 0], states[:, i, 1], color= mcolors.CSS4_COLORS[colors_agent[i]], ls='--' )
+
+    # Draw the Stop-Goals
+    color_tri = mcolors.CSS4_COLORS['lightcoral']
+    for i, route in enumerate(target_routes) :        
+        for goal_coor in route:
+            axes.add_patch(RegularPolygon((goal_coor[0], goal_coor[1]+delta_tri), 3, radius=tri_size, orientation=math.radians(-45), facecolor=color_tri) )
+
+    # Draw obstacles
+    num_obs = len(obst_list)
+    obst_list = obst_list + obs_unknowns
+    # print("OBST = ", obst_list)
+
+    for i in range(0, len(obst_list)):
+        # Came from PSO then (x_botton_left, y_botton_left, x_rigth_up, y_rigth_up)
+        rect_w = obst_list[i][2]
+        rect_w = abs(rect_w - obst_list[i][0])
+
+        rect_h = obst_list[i][3]
+        rect_h = abs(rect_h - obst_list[i][1])
+
+        x_botton = obst_list[i][0]
+        y_botton = obst_list[i][1]
+        print("Obst i ", i, x_botton, y_botton, rect_w, rect_h)
+        if i >= num_obs:
+            color_obs = 'lightsteelblue'
+        else:
+            color_obs = 'dimgray'
+
+        axes.add_patch(Rectangle((x_botton, y_botton), rect_w, rect_h, facecolor=mcolors.CSS4_COLORS[color_obs]))
+    
+    if frame_objt != None :
+        axes.plot([frame_objt.init_state[0], frame_objt.goal_coor_init[0]], [frame_objt.init_state[1], frame_objt.goal_coor_init[1]], color ='blue') 
+        axes.scatter(frame_objt.sub_goal[0], frame_objt.sub_goal[1], c='blue', alpha=0.5, linewidths=0.5)
+        axes.scatter(frame_objt.x0, frame_objt.y0, c='red', alpha=1, linewidths=1)
+
+        # frame
+        w_real_frame = abs(frame_objt.corners[0][0] - frame_objt.corners[1][0])
+        h_real_frame = abs(frame_objt.corners[0][1] - frame_objt.corners[2][1])
+        axes.add_patch(Rectangle((frame_objt.corners[2][0], frame_objt.corners[2][1]), w_real_frame, h_real_frame, fill=False, ec='black'))
+
+        axes.add_patch(Circle((frame_objt.x0, frame_objt.y0), radius=frame_objt.r_circ, alpha=0.3))
+        axes.add_patch(Circle((frame_objt.x0, frame_objt.y0), radius=frame_objt.obst_r, alpha=0.3, fill=False, ec='black', ls='--'))
+
+
+    # Adjust layout
+    axes.grid(True)
+    axes.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_scene_drl_frame_list(route_agent_id, data_lists=[], obst_list=[], target_routes=[[]], cm_flag=False, states=[], obs_unknowns= [], smaller=False, frame_objt_list=None):
+    '''
+        cm_flag: False when map is maller than 20x20 
+    '''
+    if cm_flag :
+        tri_size = 3
+        delta_tri = 2      
+        delta_name = (5, 2)
+    else:
+        tri_size = 0.3
+        delta_tri = 0.2                # up
+        delta_name = (0.5, 0.2)
+        # tri_size = 7
+        # delta_tri = 6
+        # delta_name = (20, 10)
+
+    if smaller :
+        tri_size = 0.02
+        delta_tri = 0.02                # up
+        delta_name = (0.05, 0.02)        
+
+
+    
+    # Create figure and subplots
+    fig, axes = plt.subplots(1, 1, figsize=(10, 6))
+
+    for i, route in enumerate(data_lists) :
+        axes.plot(route[0], route[1], color= mcolors.CSS4_COLORS[colors_list[i]], label="Route "+str(route_agent_id[i]))
+        axes.scatter(route[0], route[1], color= mcolors.CSS4_COLORS[colors_list[i]], alpha=0.5, linewidths=0.5)
+
+        # Text Names
+        axes.text(route[0, 0]-delta_name[0], route[1, 0]-delta_name[1], "Init", fontsize=8, horizontalalignment='left',
+        # axes.text(route[0][0]-delta_name[0], route[1][0]-delta_name[1], "Init", fontsize=8, horizontalalignment='left',
+                    verticalalignment='center', color=mcolors.CSS4_COLORS['grey'])
+        
+        if len(states) > 0 :
+            # color=color_agent[0], 
+            axes.plot(states[:, i, 0], states[:, i, 1], color= mcolors.CSS4_COLORS[colors_agent[i]], ls='--' )
+
+    # Draw the Stop-Goals
+    color_tri = mcolors.CSS4_COLORS['lightcoral']
+    for i, route in enumerate(target_routes) :        
+        for goal_coor in route:
+            axes.add_patch(RegularPolygon((goal_coor[0], goal_coor[1]+delta_tri), 3, radius=tri_size, orientation=math.radians(-45), facecolor=color_tri) )
+
+    # Draw obstacles
+    num_obs = len(obst_list)
+    obst_list = obst_list + obs_unknowns
+    # print("OBST = ", obst_list)
+
+    for i in range(0, len(obst_list)):
+        # Came from PSO then (x_botton_left, y_botton_left, x_rigth_up, y_rigth_up)
+        rect_w = obst_list[i][2]
+        rect_w = abs(rect_w - obst_list[i][0])
+
+        rect_h = obst_list[i][3]
+        rect_h = abs(rect_h - obst_list[i][1])
+
+        x_botton = obst_list[i][0]
+        y_botton = obst_list[i][1]
+        print("Obst i ", i, x_botton, y_botton, rect_w, rect_h)
+        if i >= num_obs:
+            color_obs = 'lightsteelblue'
+        else:
+            color_obs = 'dimgray'
+
+        axes.add_patch(Rectangle((x_botton, y_botton), rect_w, rect_h, facecolor=mcolors.CSS4_COLORS[color_obs]))
+    
+    if frame_objt_list != None :
+
+        for frame_objt in frame_objt_list :
+            if frame_objt.x0 != None :
+                axes.plot([frame_objt.init_state[0], frame_objt.goal_coor_init[0]], [frame_objt.init_state[1], frame_objt.goal_coor_init[1]], color ='blue') 
+                axes.scatter(frame_objt.sub_goal[0], frame_objt.sub_goal[1], c='blue', alpha=0.5, linewidths=0.5)
+                axes.scatter(frame_objt.x0, frame_objt.y0, c='red', alpha=1, linewidths=1)
+
+                # frame
+                w_real_frame = abs(frame_objt.corners[0][0] - frame_objt.corners[1][0])
+                h_real_frame = abs(frame_objt.corners[0][1] - frame_objt.corners[2][1])
+                axes.add_patch(Rectangle((frame_objt.corners[2][0], frame_objt.corners[2][1]), w_real_frame, h_real_frame, fill=False, ec='black'))
+
+                axes.add_patch(Circle((frame_objt.x0, frame_objt.y0), radius=frame_objt.r_circ, alpha=0.3))
+                axes.add_patch(Circle((frame_objt.x0, frame_objt.y0), radius=frame_objt.obst_r, alpha=0.3, fill=False, ec='black', ls='--'))
+
+
+    # Adjust layout
+    axes.grid(True)
+    axes.legend()
+    
+    axes.axis('equal')
+    # plt.tight_layout()    
+    plt.show()
